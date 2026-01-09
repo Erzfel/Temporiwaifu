@@ -444,8 +444,6 @@
                 <div class="waifu-container">
                     <div class="waifu-image-container">
                     <img src="assets/life.jpeg" alt="Waifu" class="waifu-image" id="waifuImage">
-
-
                     </div>
                 </div>
             </div>
@@ -456,6 +454,12 @@
         </div>
     </div>
 
+    <!-- Elemento de audio para la alerta -->
+    <audio id="alertaAudio" preload="auto">
+        <source src="alerta/dandadan.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
     <script>
         // Variables del temporizador
         let timerInterval;
@@ -463,6 +467,7 @@
         let isRunning = false;
         let isPaused = false;
         let modoActual = '';
+        let haSonadoAlerta = false; // Controla si la alerta ya sonó
 
         // Elementos del DOM
         const timerDisplay = document.getElementById('timer');
@@ -478,12 +483,32 @@
         const footerText = document.getElementById('footerText');
         const headerTitle = document.getElementById('headerTitle');
         const headerSubtitle = document.getElementById('headerSubtitle');
+        const alertaAudio = document.getElementById('alertaAudio');
 
         // Inicializar el temporizador en 0
         function updateTimerDisplay() {
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Función para reproducir la alerta
+        function reproducirAlerta() {
+            // Solo reproducir si no ha sonado ya
+            if (!haSonadoAlerta) {
+                haSonidoAlerta = true;
+                
+                // Reiniciar el audio y reproducir
+                alertaAudio.currentTime = 0;
+                alertaAudio.play().catch(error => {
+                    console.log("Error al reproducir la alerta:", error);
+                });
+                
+                // Restablecer la variable después de que termine el audio
+                alertaAudio.onended = function() {
+                    haSonidoAlerta = false;
+                };
+            }
         }
 
         // Cambiar a modo descanso
@@ -520,11 +545,14 @@
             footerText.textContent = '';
         }
 
-        // Finalizar temporizador sin alertas
+        // Finalizar temporizador
         function finalizarTemporizador() {
             clearInterval(timerInterval);
             isRunning = false;
             isPaused = false;
+            
+            // Reproducir alerta cuando el temporizador llega a 0
+            reproducirAlerta();
             
             // Rehabilitar botones
             startBtn.disabled = false;
@@ -571,7 +599,7 @@
                     totalSeconds--;
                     updateTimerDisplay();
                 } else {
-                    // Temporizador finalizado sin alerta
+                    // Temporizador finalizado
                     finalizarTemporizador();
                 }
             }, 1000);
@@ -606,7 +634,7 @@
                     totalSeconds--;
                     updateTimerDisplay();
                 } else {
-                    // Temporizador finalizado sin alerta
+                    // Temporizador finalizado
                     finalizarTemporizador();
                 }
             }, 1000);
@@ -643,6 +671,7 @@
             totalSeconds = 0;
             isRunning = false;
             isPaused = false;
+            haSonidoAlerta = false; // Resetear la bandera de alerta
 
             // Rehabilitar botones
             startBtn.disabled = false;
