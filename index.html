@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keim Lite con Waifu Escritora</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 95vh;
+        }
+
+        .header {
+            text-align: center;
+            padding: 25px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff7eb3, #65c7f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header p {
+            color: #a0a0c0;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px 30px;
+            overflow: hidden;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        .timer-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .waifu-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .timer-display {
+            font-size: 7rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            background: linear-gradient(90deg, #ff7eb3, #65c7f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 5px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .text-estado {
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 10px 0;
+            background: linear-gradient(90deg, #ff7eb3, #65c7f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 5px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .timer-btn {
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .timer-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* Botones sin texto - solo iconos */
+        .icon-only {
+            padding: 15px;
+            width: 60px;
+            justify-content: center;
+        }
+
+        .icon-only i {
+            margin: 0;
+        }
+
+        .start-btn {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .descanso-btn {
+            background: linear-gradient(90deg, #9C27B0, #673AB7);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(90deg, #FF9800, #FFC107);
+            color: white;
+        }
+
+        .reset-btn {
+            background: linear-gradient(90deg, #F44336, #E91E63);
+            color: white;
+        }
+
+        .timer-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-btn:active {
+            transform: translateY(1px);
+        }
+
+        .timer-add-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .add-btn {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .add-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .waifu-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 350px;
+            border-radius: 15px;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .waifu-image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .waifu-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .waifu-desk {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background-color: #3a2c1a;
+            border-top: 5px solid #2a1c0a;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #a0a0c0;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Estilos para los botones secundarios */
+        .secondary-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .secondary-controls .timer-btn {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                padding: 15px;
+            }
+
+            .timer-display {
+                font-size: 5rem;
+                margin: 15px 0;
+            }
+
+            .text-estado {
+                margin: 8px 0;
+                height: 26px;
+                font-size: 0.9rem;
+            }
+
+            .waifu-container {
+                height: 250px;
+                margin-top: 15px;
+            }
+            
+            .timer-controls,
+            .secondary-controls {
+                gap: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .footer {
+                padding: 12px;
+                height: 45px;
+            }
+        }
+
+        /* Ajustes solo para laptops ~1366x768 */
+        @media (min-width: 1024px) and (max-width: 1400px) and (max-height: 800px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                max-height: 95vh;
+            }
+
+            .header {
+                padding: 18px;
+            }
+
+            .header h1 {
+                font-size: 2.1rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .main-content {
+                padding: 15px 20px;
+            }
+
+            .timer-display {
+                font-size: 5.6rem;
+                margin: 15px 0;
+            }
+
+            .text-estado {
+                margin: 8px 0;
+                height: 26px;
+                font-size: 0.9rem;
+            }
+
+            .timer-add-buttons {
+                margin-bottom: 15px;
+            }
+
+            .timer-controls {
+                margin-bottom: 15px;
+            }
+
+            .timer-btn {
+                padding: 12px 20px;
+                font-size: 1.05rem;
+            }
+            
+            .secondary-controls .timer-btn {
+                padding: 10px 18px;
+                font-size: 1rem;
+            }
+
+            .add-btn {
+                padding: 10px 16px;
+                font-size: 1rem;
+            }
+
+            .waifu-container {
+                height: 280px;
+                max-width: 420px;
+            }
+
+            .footer {
+                padding: 10px;
+                font-size: 0.85rem;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- Aquí va el mensaje que cambia -->
+            <h1 id="headerTitle">Keim Lite con Waifu Escritora</h1>
+            <p id="headerSubtitle"></p>
+        </div>
+
+        <div class="main-content">
+            <div class="timer-section">
+                 <p class="text-estado" id="subtitle"></p>
+                <div class="timer-display" id="timer">00:00</div>
+
+                <div class="timer-add-buttons">
+                    <button class="add-btn" id="add1min">+1 minuto</button>
+                    <button class="add-btn" id="add5min">+5 minutos</button>
+                    <button class="add-btn" id="add10min">+10 minutos</button>
+                </div>
+
+                <div class="timer-controls">
+                    <button class="timer-btn start-btn" id="startBtn">
+                        <i class="fas fa-pencil-alt"></i> Escribir
+                    </button>
+                    <button class="timer-btn descanso-btn" id="descansoBtn">
+                        <i class="fas fa-couch"></i> Descanso
+                    </button>
+                </div>
+                
+                <div class="secondary-controls">
+                    <!-- Botones con solo iconos -->
+                    <button class="timer-btn pause-btn icon-only" id="pauseBtn" disabled>
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="timer-btn reset-btn icon-only" id="resetBtn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="waifu-section">
+                <div class="waifu-container">
+                    <div class="waifu-image-container">
+                    <img src="assets/life.jpeg" alt="Waifu" class="waifu-image" id="waifuImage">
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p id="footerText"></p>
+        </div>
+    </div>
+
+    <script>
+        // Variables del temporizador
+        let timerInterval;
+        let totalSeconds = 0;
+        let isRunning = false;
+        let isPaused = false;
+        let modoActual = '';
+
+        // Elementos del DOM
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const descansoBtn = document.getElementById('descansoBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const add1minBtn = document.getElementById('add1min');
+        const add5minBtn = document.getElementById('add5min');
+        const add10minBtn = document.getElementById('add10min');
+        const waifuImage = document.getElementById('waifuImage');
+        const subtitle = document.getElementById('subtitle');
+        const footerText = document.getElementById('footerText');
+        const headerTitle = document.getElementById('headerTitle');
+        const headerSubtitle = document.getElementById('headerSubtitle');
+
+        // Inicializar el temporizador en 0
+        function updateTimerDisplay() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Cambiar a modo descanso
+        function activarModoDescanso() {
+            modoActual = 'descanso';
+            // Cambiar el título en el header
+            headerTitle.textContent = 'Tiempo para hablar mamadas.';
+            headerSubtitle.textContent = '';
+            // Poner el mensaje en el footer
+            footerText.textContent = 'Hablen mientras las waifus bailan.';
+            // Limpiar otros textos
+            subtitle.textContent = '';
+        }
+
+        // Cambiar a modo escritura
+        function activarModoEscritura() {
+            modoActual = 'escritura';
+            // Cambiar el título en el header
+            headerTitle.textContent = 'El que no escriba es gei ¬.¬';
+            headerSubtitle.textContent = '';
+            // Poner el mensaje en el footer
+            footerText.textContent = 'Puto el que lo lea D:';
+            // Limpiar otros textos
+            subtitle.textContent = '';
+        }
+
+        // Limpiar todos los mensajes
+        function limpiarMensajes() {
+            modoActual = '';
+            // Restaurar título original
+            headerTitle.textContent = 'Keim Lite con Waifu Escritora';
+            headerSubtitle.textContent = '';
+            subtitle.textContent = '';
+            footerText.textContent = '';
+        }
+
+        // Finalizar temporizador sin alertas
+        function finalizarTemporizador() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            isPaused = false;
+            
+            // Rehabilitar botones
+            startBtn.disabled = false;
+            descansoBtn.disabled = false;
+            pauseBtn.disabled = true;
+            // Restaurar icono de pausa
+            pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            
+            // Cambiar imagen de vuelta a JPG
+            waifuImage.src = "./assets/life.jpeg";
+            
+            // Limpiar mensajes y restablecer todo
+            limpiarMensajes();
+            totalSeconds = 0;
+            updateTimerDisplay();
+        }
+
+        // Iniciar temporizador normal (modo escritura)
+        function startTimer() {
+            if (isRunning) return;
+            
+            // No permitir iniciar si el tiempo es 0
+            if (totalSeconds <= 0) {
+                alert("¡Agrega tiempo primero usando los botones +1 min, +5 min o +10 min!");
+                return;
+            }
+
+            isRunning = true;
+            isPaused = false;
+            
+            // Actualizar textos
+            activarModoEscritura();
+            
+            // Configurar botones
+            startBtn.disabled = true;
+            descansoBtn.disabled = true;
+            pauseBtn.disabled = false;
+
+            // Cambiar imagen a GIF de escritura
+            waifuImage.src = "./assets/animacion.gif";
+
+            timerInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    // Temporizador finalizado sin alerta
+                    finalizarTemporizador();
+                }
+            }, 1000);
+        }
+
+        // Iniciar temporizador de descanso
+        function startDescansoTimer() {
+            if (isRunning) return;
+            
+            // No permitir iniciar si el tiempo es 0
+            if (totalSeconds <= 0) {
+                alert("¡Agrega tiempo primero usando los botones +1 min, +5 min o +10 min!");
+                return;
+            }
+
+            isRunning = true;
+            isPaused = false;
+            
+            // Actualizar textos
+            activarModoDescanso();
+            
+            // Configurar botones
+            startBtn.disabled = true;
+            descansoBtn.disabled = true;
+            pauseBtn.disabled = false;
+
+            // Cambiar imagen a GIF de descanso
+            waifuImage.src = "./assets/nome.gif";
+
+            timerInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    // Temporizador finalizado sin alerta
+                    finalizarTemporizador();
+                }
+            }, 1000);
+        }
+
+        // Pausar/Continuar temporizador
+        function pauseTimer() {
+            if (!isRunning) return;
+
+            if (!isPaused) {
+                // Pausar
+                clearInterval(timerInterval);
+                isPaused = true;
+                pauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                // Continuar
+                isPaused = false;
+                pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+
+                timerInterval = setInterval(() => {
+                    if (totalSeconds > 0) {
+                        totalSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        finalizarTemporizador();
+                    }
+                }, 1000);
+            }
+        }
+
+        // Restablecer temporizador a 0
+        function resetTimer() {
+            clearInterval(timerInterval);
+            totalSeconds = 0;
+            isRunning = false;
+            isPaused = false;
+
+            // Rehabilitar botones
+            startBtn.disabled = false;
+            descansoBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+
+            // Limpiar mensajes y restablecer imagen
+            limpiarMensajes();
+            waifuImage.src = "./assets/life.jpeg";
+
+            updateTimerDisplay();
+        }
+
+        // Añadir tiempo al temporizador
+        function addTime(minutes) {
+            totalSeconds += minutes * 60;
+            updateTimerDisplay();
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', startTimer);
+        descansoBtn.addEventListener('click', startDescansoTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        add1minBtn.addEventListener('click', () => addTime(1));
+        add5minBtn.addEventListener('click', () => addTime(5));
+        add10minBtn.addEventListener('click', () => addTime(10));
+
+        // Inicializar
+        updateTimerDisplay();
+        limpiarMensajes();
+    </script>
+</body>
+
+</html>
