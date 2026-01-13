@@ -37,6 +37,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             max-height: 95vh;
+            position: relative;
         }
 
         .header {
@@ -286,6 +287,103 @@
             font-size: 1.1rem;
         }
 
+        /* Controlador de Volumen */
+        .volume-control-container {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            transition: all 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 8px 12px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .volume-icon-btn {
+            background: transparent;
+            border: none;
+            color: #a0a0c0;
+            font-size: 1.4rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .volume-icon-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #65c7f7;
+            transform: scale(1.1);
+        }
+
+        .volume-slider-container {
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .volume-control-container:hover .volume-slider-container,
+        .volume-control-container.expanded .volume-slider-container {
+            width: 100px;
+            opacity: 1;
+            margin-left: 5px;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(90deg, #ff7eb3, #65c7f7);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(101, 199, 247, 0.5);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(90deg, #ff7eb3, #65c7f7);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .volume-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(101, 199, 247, 0.5);
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 flex-direction: column;
@@ -324,6 +422,17 @@
             .footer {
                 padding: 12px;
                 height: 45px;
+            }
+
+            .volume-control-container {
+                bottom: 10px;
+                right: 10px;
+                padding: 6px 10px;
+            }
+
+            .volume-control-container:hover .volume-slider-container,
+            .volume-control-container.expanded .volume-slider-container {
+                width: 80px;
             }
         }
 
@@ -452,6 +561,16 @@
         <div class="footer">
             <p id="footerText"></p>
         </div>
+
+        <!-- Controlador de Volumen -->
+        <div class="volume-control-container" id="volumeControl">
+            <button class="volume-icon-btn" id="volumeIconBtn">
+                <i class="fas fa-volume-up" id="volumeIcon"></i>
+            </button>
+            <div class="volume-slider-container">
+                <input type="range" min="0" max="100" value="100" class="volume-slider" id="volumeSlider">
+            </div>
+        </div>
     </div>
 
     <!-- Elemento de audio para la alerta -->
@@ -469,6 +588,11 @@
         let modoActual = '';
         let haSonadoAlerta = false; // Controla si la alerta ya sonó
 
+        // Variables de volumen
+        let volumenActual = 1.0; // Volumen inicial al 100%
+        let estaMuteado = false;
+        let volumenAntesDeMute = 1.0;
+
         // Elementos del DOM
         const timerDisplay = document.getElementById('timer');
         const startBtn = document.getElementById('startBtn');
@@ -484,12 +608,73 @@
         const headerTitle = document.getElementById('headerTitle');
         const headerSubtitle = document.getElementById('headerSubtitle');
         const alertaAudio = document.getElementById('alertaAudio');
+        
+        // Elementos del control de volumen
+        const volumeControl = document.getElementById('volumeControl');
+        const volumeIconBtn = document.getElementById('volumeIconBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
 
         // Inicializar el temporizador en 0
         function updateTimerDisplay() {
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Configurar volumen inicial
+        function configurarVolumenInicial() {
+            alertaAudio.volume = volumenActual;
+            volumeSlider.value = volumenActual * 100;
+            actualizarIconoVolumen();
+        }
+
+        // Actualizar el icono de volumen según el nivel actual
+        function actualizarIconoVolumen() {
+            if (estaMuteado || volumenActual === 0) {
+                volumeIcon.className = 'fas fa-volume-mute';
+            } else if (volumenActual < 0.5) {
+                volumeIcon.className = 'fas fa-volume-down';
+            } else {
+                volumeIcon.className = 'fas fa-volume-up';
+            }
+        }
+
+        // Cambiar estado de mute
+        function toggleMute() {
+            estaMuteado = !estaMuteado;
+            
+            if (estaMuteado) {
+                volumenAntesDeMute = volumenActual;
+                volumenActual = 0;
+                alertaAudio.volume = 0;
+                volumeSlider.value = 0;
+            } else {
+                volumenActual = volumenAntesDeMute;
+                alertaAudio.volume = volumenActual;
+                volumeSlider.value = volumenActual * 100;
+            }
+            
+            actualizarIconoVolumen();
+        }
+
+        // Cambiar volumen con el slider
+        function cambiarVolumen(valor) {
+            // Convertir el valor del slider (0-100) a volumen (0.0-1.0)
+            volumenActual = valor / 100;
+            
+            // Actualizar el volumen del audio
+            alertaAudio.volume = volumenActual;
+            
+            // Si el volumen es mayor a 0, no está muteado
+            if (volumenActual > 0) {
+                estaMuteado = false;
+                volumenAntesDeMute = volumenActual;
+            } else {
+                estaMuteado = true;
+            }
+            
+            actualizarIconoVolumen();
         }
 
         // Función para reproducir la alerta
@@ -692,7 +877,7 @@
             updateTimerDisplay();
         }
 
-        // Event Listeners
+        // Event Listeners para el temporizador
         startBtn.addEventListener('click', startTimer);
         descansoBtn.addEventListener('click', startDescansoTimer);
         pauseBtn.addEventListener('click', pauseTimer);
@@ -701,9 +886,36 @@
         add5minBtn.addEventListener('click', () => addTime(5));
         add10minBtn.addEventListener('click', () => addTime(10));
 
+        // Event Listeners para el control de volumen
+        volumeIconBtn.addEventListener('click', toggleMute);
+        
+        volumeSlider.addEventListener('input', function() {
+            cambiarVolumen(this.value);
+        });
+
+        // Mostrar/ocultar el slider de volumen
+        volumeControl.addEventListener('mouseenter', function() {
+            this.classList.add('expanded');
+        });
+
+        volumeControl.addEventListener('mouseleave', function() {
+            this.classList.remove('expanded');
+        });
+
+        // También permitir hacer clic para expandir (útil en dispositivos táctiles)
+        volumeControl.addEventListener('click', function(e) {
+            if (e.target === volumeIconBtn || e.target === volumeIcon) {
+                // No hacer nada si se hace clic en el botón del icono
+                // (ya tiene su propio evento para toggleMute)
+                return;
+            }
+            this.classList.toggle('expanded');
+        });
+
         // Inicializar
         updateTimerDisplay();
         limpiarMensajes();
+        configurarVolumenInicial();
     </script>
 </body>
 
