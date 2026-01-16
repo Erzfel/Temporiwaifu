@@ -573,9 +573,15 @@
         </div>
     </div>
 
-    <!-- Elemento de audio para la alerta -->
+    <!-- Elemento de audio para la alerta de escritura -->
     <audio id="alertaAudio" preload="auto">
-        <source src="alerta/dandadan-xd.mp3" type="audio/mpeg">
+        <source src="alerta/start-xd.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+    
+    <!-- Elemento de audio para la alerta de descanso -->
+    <audio id="finishAudio" preload="auto">
+        <source src="alerta/finish-xd.mp3" type="audio/mpeg">
         Tu navegador no soporta el elemento de audio.
     </audio>
 
@@ -589,7 +595,7 @@
         let haSonadoAlerta = false; // Controla si la alerta ya sonó
 
         // Variables de volumen
-        let volumenActual = 1.0; // Volumen inicial al 100%
+        let volumenActual = 0.4; // Volumen inicial al 100%
         let estaMuteado = false;
         let volumenAntesDeMute = 1.0;
 
@@ -608,6 +614,7 @@
         const headerTitle = document.getElementById('headerTitle');
         const headerSubtitle = document.getElementById('headerSubtitle');
         const alertaAudio = document.getElementById('alertaAudio');
+        const finishAudio = document.getElementById('finishAudio'); // Audio para descanso
         
         // Elementos del control de volumen
         const volumeControl = document.getElementById('volumeControl');
@@ -622,9 +629,10 @@
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // Configurar volumen inicial
+        // Configurar volumen inicial para ambos audios
         function configurarVolumenInicial() {
             alertaAudio.volume = volumenActual;
+            finishAudio.volume = volumenActual;
             volumeSlider.value = volumenActual * 100;
             actualizarIconoVolumen();
         }
@@ -640,7 +648,7 @@
             }
         }
 
-        // Cambiar estado de mute
+        // Cambiar estado de mute para ambos audios
         function toggleMute() {
             estaMuteado = !estaMuteado;
             
@@ -648,23 +656,26 @@
                 volumenAntesDeMute = volumenActual;
                 volumenActual = 0;
                 alertaAudio.volume = 0;
+                finishAudio.volume = 0;
                 volumeSlider.value = 0;
             } else {
                 volumenActual = volumenAntesDeMute;
                 alertaAudio.volume = volumenActual;
+                finishAudio.volume = volumenActual;
                 volumeSlider.value = volumenActual * 100;
             }
             
             actualizarIconoVolumen();
         }
 
-        // Cambiar volumen con el slider
+        // Cambiar volumen con el slider para ambos audios
         function cambiarVolumen(valor) {
             // Convertir el valor del slider (0-100) a volumen (0.0-1.0)
             volumenActual = valor / 100;
             
-            // Actualizar el volumen del audio
+            // Actualizar el volumen de ambos audios
             alertaAudio.volume = volumenActual;
+            finishAudio.volume = volumenActual;
             
             // Si el volumen es mayor a 0, no está muteado
             if (volumenActual > 0) {
@@ -677,21 +688,30 @@
             actualizarIconoVolumen();
         }
 
-        // Función para reproducir la alerta
+        // Función para reproducir la alerta según el modo
         function reproducirAlerta() {
             // Solo reproducir si no ha sonado ya
             if (!haSonadoAlerta) {
-                haSonidoAlerta = true;
+                haSonadoAlerta = true;
+                
+                let audioParaReproducir;
+                
+                // Determinar qué audio reproducir según el modo
+                if (modoActual === 'descanso') {
+                    audioParaReproducir = finishAudio;
+                } else {
+                    audioParaReproducir = alertaAudio;
+                }
                 
                 // Reiniciar el audio y reproducir
-                alertaAudio.currentTime = 0;
-                alertaAudio.play().catch(error => {
+                audioParaReproducir.currentTime = 0;
+                audioParaReproducir.play().catch(error => {
                     console.log("Error al reproducir la alerta:", error);
                 });
                 
                 // Restablecer la variable después de que termine el audio
-                alertaAudio.onended = function() {
-                    haSonidoAlerta = false;
+                audioParaReproducir.onended = function() {
+                    haSonadoAlerta = false;
                 };
             }
         }
@@ -736,7 +756,7 @@
             isRunning = false;
             isPaused = false;
             
-            // Reproducir alerta cuando el temporizador llega a 0
+            // Reproducir alerta según el modo cuando el temporizador llega a 0
             reproducirAlerta();
             
             // Rehabilitar botones
@@ -856,7 +876,7 @@
             totalSeconds = 0;
             isRunning = false;
             isPaused = false;
-            haSonidoAlerta = false; // Resetear la bandera de alerta
+            haSonadoAlerta = false; // Resetear la bandera de alerta
 
             // Rehabilitar botones
             startBtn.disabled = false;
